@@ -9,10 +9,11 @@ from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView
 from notifications import settings
 from notifications.settings import get_config
-from notifications.utils import id2slug, slug2id
+from notifications.utils import id2slug, slug2id, time_elapsed
 from swapper import load_model
 
 Notification = load_model('notifications', 'Notification')
@@ -75,6 +76,7 @@ def mark_all_as_read(request):
 
 
 @login_required
+@csrf_exempt
 def mark_as_read(request, slug=None):
     notification_id = slug2id(slug)
 
@@ -175,6 +177,7 @@ def live_unread_notification_list(request):
     for notification in request.user.notifications.unread()[0:num_to_fetch]:
         struct = model_to_dict(notification)
         struct['slug'] = id2slug(notification.id)
+        struct['time_elapsed'] = time_elapsed(notification.timestamp)
         if notification.actor:
             struct['actor'] = str(notification.actor)
         if notification.target:

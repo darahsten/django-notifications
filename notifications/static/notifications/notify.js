@@ -1,5 +1,6 @@
 var notify_badge_class;
 var notify_menu_class;
+var notify_menu_id = 'notifications-id';
 var notify_api_url;
 var notify_fetch_count;
 var notify_unread_url;
@@ -17,9 +18,27 @@ function fill_notification_badge(data) {
     }
 }
 
+
+function mark_as_read(e){
+    var slug = $(this).attr('id');
+    var mark_read_url = '/inbox/notifications/mark-as-read/'+slug+ '/';
+    var r = new XMLHttpRequest();
+    r.addEventListener('readystatechange', function(event){
+        if (this.readyState === 4){
+            if (this.status === 200){
+                   // console.log('Success')
+                }else{
+                    //console.log('Failed to post data to the API to mark as read.')
+                }
+            }
+        });
+        r.open("POST", mark_read_url, true);
+        r.send();
+}
+
 function fill_notification_list(data) {
-    var menus = document.getElementsByClassName(notify_menu_class);
-    if (menus) {
+    var notify_list = document.getElementById(notify_menu_id);
+    if (notify_list) {
         var messages = data.unread_list.map(function (item) {
             var message = "";
             if(typeof item.actor !== 'undefined'){
@@ -31,14 +50,25 @@ function fill_notification_list(data) {
             if(typeof item.target !== 'undefined'){
                 message = message + " " + item.target;
             }
-            if(typeof item.timestamp !== 'undefined'){
-                message = message + " " + item.timestamp;
+            if(typeof item.time_elapsed !== 'undefined'){
+                message = message + "<br>" + item.time_elapsed;
             }
-            return '<li>' + message + '</li>';
-        }).join('')
+            // if(typeof item.slug !== 'undefined'){
+            //     message = message + '<p hidden class=notifications-slug>' + item.slug + '</p>';
+            // }
+            return "<li class='notifications-list-item list-group-item'" + "id="+ item.slug+ ">" + message + "</li>";
+        }).join('');
 
-        for (var i = 0; i < menus.length; i++){
-            menus[i].innerHTML = messages;
+        notify_list.innerHTML = messages;
+        var notifications = data.unread_list.map(function(item){
+            $('#'+item.slug).mouseover(mark_as_read);
+        });
+
+        var badges = $('span.badge');
+        if (badges){
+        for(var i = 0; i < badges.length; i++){
+                badges[i].innerHTML = data.unread_count;
+            }
         }
     }
 }
@@ -61,7 +91,7 @@ function fetch_api_data() {
                     consecutive_misfires++;
                 }
             }
-        })
+        });
         r.open("GET", notify_api_url+'?max='+notify_fetch_count, true);
         r.send();
     }

@@ -88,8 +88,8 @@ def live_notify_badge(context, badge_class='live_notify_badge'):
 
 
 @register.simple_tag
-def live_notify_list(list_class='live_notify_list'):
-    html = "<ul class='{list_class}'></ul>".format(list_class=list_class)
+def live_notify_list(list_class='live_notify_list', list_id='notifications-id'):
+    html = "<ul class='{list_class}' id={list_id}></ul>".format(list_class=list_class, list_id=list_id)
     return format_html(html)
 
 
